@@ -1,11 +1,14 @@
 import './App.css';
 import Video from './components/Video';
+import Rainbow from './components/Rainbow';
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <Video></Video>
+        <div>
+          <Video></Video>
+        </div>
       </header>
     </div>
   );
