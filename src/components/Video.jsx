@@ -78,6 +78,10 @@ class Video extends React.Component {
             <div id="capture" style={{backgroundColor:'#000000'}}>
               <textarea>Scrivi qui ...</textarea>
               <Rainbow></Rainbow>
+              <video id='video' controls="controls" preload='none' width="600" poster="https://assets.codepen.io/32795/poster.png">
+                <source id='mp4' src="/trailer.mp4" type='video/mp4' />
+                <p>Your user agent does not support the HTML5 Video element.</p>
+              </video>
             </div>
             <canvas id="canvas" style={{display:'none'}}></canvas>
           </div>
