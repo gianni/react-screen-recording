@@ -34,3 +34,14 @@ body{
   background-color:#000;
 }
 
+#modal {
+  display: none;
+  opacity: 0;
+  transition: opacity 1s;
+}
+
+#modal.open {
+  display: flex;
+  opacity: 1
+}
+
