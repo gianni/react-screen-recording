@@ -9,7 +9,7 @@ class Video extends React.Component {
 
   render() {
     return (
-      <video id='video' controls="controls" preload='none' width="400" poster="/poster.png">
+      <video id='video' playsInline preload='none' controls width="400" muted poster="/poster.png">
         <source id='mp4' src="/trailer.mp4" type='video/mp4' />
         <p>Your user agent does not support the HTML5 Video element.</p>
       </video>
