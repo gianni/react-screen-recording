@@ -31,6 +31,25 @@ class Recorder extends React.Component {
     this.captureElement = document.getElementById('room')
   }
 
+  initMediaRecorder(stream) {
+    let _this = this
+    const mediaRecorder = new MediaRecorder(stream);
+
+    // mediaRecorder events
+    mediaRecorder.ondataavailable = function (e) {
+      _this.chunks.push(e.data);
+    }
+
+    mediaRecorder.onstop = function (e) {
+      let blob = new Blob(_this.chunks, { 'type': 'video/webm' })
+      _this.setState({ videoSize: (blob.size / 1024).toFixed(2)  })
+      _this.setState({ videoUrl: URL.createObjectURL(blob) })
+      _this.chunks = []
+    }
+
+    return mediaRecorder
+  }
+
   recordAudio(videoElement) {
     const ctx = new AudioContext()
     const source = ctx.createMediaElementSource(videoElement)
@@ -55,7 +74,6 @@ class Recorder extends React.Component {
 
   startRecording() {
     
-    let _this = this
     const video = document.querySelectorAll('#video')[0]
 
     // get audio and video streams
@@ -64,20 +82,8 @@ class Recorder extends React.Component {
 
     // mix streams video and audio
     let mixedStream = new MediaStream([...videoStream.getTracks(), ...audioStream.getAudioTracks()])
-    this.mediaRecorder = new MediaRecorder(mixedStream);
 
-    // mediaRecorder events
-    this.mediaRecorder.ondataavailable = function (e) {
-      _this.chunks.push(e.data);
-    }
-
-    this.mediaRecorder.onstop = function (e) {
-      let blob = new Blob(_this.chunks, { 'type': 'video/webm' })
-      _this.setState({ videoSize: (blob.size / 1024).toFixed(2)  })
-      _this.setState({ videoUrl: URL.createObjectURL(blob) })
-      _this.chunks = []
-    }
-
+    this.mediaRecorder = this.initMediaRecorder(mixedStream)
     this.mediaRecorder.start()
     this.setState({ isRecording: true })
   }
