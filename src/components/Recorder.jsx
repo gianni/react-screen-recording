@@ -59,7 +59,7 @@ class Recorder extends React.Component {
   }
 
   recordScreen(screenElement) {
-    const frameRate = 30
+    const frameRate = 20
     this.canvasRef.current.width = screenElement.clientWidth
     this.canvasRef.current.height = screenElement.clientHeight
 
