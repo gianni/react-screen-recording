@@ -10,17 +10,21 @@ class Recorder extends React.Component {
     this.state = {
       videoSize: 0,
       isRecording: false,
+      isPlaying: false,
+      hasRecorded: false,
       videoUrl: ""
     }
 
     this.canvasRef = React.createRef();
     this.modalRef = React.createRef();
+    this.videoPreviewContainerRef = React.createRef();
 
     this.startRecording = this.startRecording.bind(this)
     this.stopRecording = this.stopRecording.bind(this)
     this.download = this.download.bind(this)
     this.toggleModal = this.toggleModal.bind(this)
     this.playAll = this.playAll.bind(this)
+    this.rewindAll = this.rewindAll.bind(this)
     this.stopAll = this.stopAll.bind(this)
 
     this.chunks = []
@@ -85,7 +89,10 @@ class Recorder extends React.Component {
 
     this.mediaRecorder = this.initMediaRecorder(mixedStream)
     this.mediaRecorder.start()
-    this.setState({ isRecording: true })
+    this.setState({ 
+      isRecording: true,
+      hasRecorded: false
+    })
   }
 
   download() {
@@ -98,21 +105,46 @@ class Recorder extends React.Component {
   }
 
   toggleModal() {
+    if (document.getElementById('videoPreview')) {
+      document.getElementById('videoPreview').remove()
+    } else {
+      const videoPreview = document.createElement('video')
+      videoPreview.id = 'videoPreview'
+      videoPreview.src = this.state.videoUrl
+      videoPreview.controls = true
+      this.videoPreviewContainerRef.current.appendChild(videoPreview)
+    }
+
     this.modalRef.current.classList.toggle('open')
   }
 
   playAll() {
-    let videos = document.querySelectorAll('#video')
+    const videos = document.querySelectorAll('#video')
+    const video1 = document.querySelectorAll('#video')[0]
     videos.forEach(video => {
       video.play()
     })
+
+    //unmute video 1
+    video1.muted=false
+    this.setState({ isPlaying: true })
+  }
+
+  rewindAll() {
+    const videos = document.querySelectorAll('#video')
+    videos.forEach(video => {
+      video.currentTime = 0
+      video.play()
+    })
+    this.setState({ isPlaying: true })
   }
 
   stopAll() {
-    let videos = document.querySelectorAll('#video')
+    const videos = document.querySelectorAll('#video')
     videos.forEach(video => {
       video.pause()
     })
+    this.setState({ isPlaying: false })
   }
 
   getDate() {
@@ -126,7 +158,10 @@ class Recorder extends React.Component {
   stopRecording() {
     clearInterval(this.recordInterval)
     this.mediaRecorder.stop()
-    this.setState({ isRecording: false })
+    this.setState({ 
+      isRecording: false,
+      hasRecorded: true
+    })
   }
 
   render() {
@@ -134,12 +169,13 @@ class Recorder extends React.Component {
       <>
         <div className="pt-4">
           <div>
-            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2`} onClick={this.playAll}>PLAY ALL</button>
-            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2`} onClick={this.stopAll}>STOP ALL</button> |
+            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.isPlaying ? 'bg-gray-200' : 'bg-cyan-200'}`} onClick={this.playAll}>PLAY ALL</button>
+            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.isPlaying ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.rewindAll}>RESTART ALL</button>
+            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.isPlaying ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.stopAll}>STOP ALL</button> |
             <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.isRecording ? 'bg-red-600' : 'bg-cyan-200'}`} onClick={this.startRecording}>REC</button>
-            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2`} onClick={this.stopRecording}>STOP REC</button> |
-            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2`} onClick={this.toggleModal}>PREVIEW</button>
-            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2`} onClick={this.download}>DOWNLOAD</button>
+            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.isRecording ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.stopRecording}>STOP REC</button> |
+            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.hasRecorded ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.toggleModal}>PREVIEW</button>
+            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.hasRecorded ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.download}>DOWNLOAD</button>
           </div>
           <div className="p-2">
             Video size: {this.state.videoSize} Kb
@@ -149,8 +185,7 @@ class Recorder extends React.Component {
           </div>
         </div>
         <div id="modal" ref={this.modalRef} className="absolute inset-0  w-full  justify-center">
-          <div style={{ width: 1200 }} className="bg-black text-white p-16">
-            <video id="videoPreview" src={this.state.videoUrl} controls width="100%" />
+          <div style={{ width: 1200 }} className="bg-black text-white p-16" ref={this.videoPreviewContainerRef}>
             <button className="bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2" onClick={this.toggleModal}>CLOSE</button>
           </div>
         </div>
