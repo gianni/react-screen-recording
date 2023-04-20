@@ -2,6 +2,16 @@ import "./App.css";
 import Camera from "./components/Camera";
 import Recorder from "./components/Recorder";
 
+function getVideos() {
+  const videosNumber = Math.floor(Math.random() * 11) + 2;
+  const videos = []
+  for(let i = 0; i < videosNumber; i++) {
+    videos.push(i)
+  }
+  return videos
+}
+
+
 function App() {
   return (
     <div className="bg-gray-800 text-cyan-200 h-screen">
@@ -10,7 +20,7 @@ function App() {
         <hr />
         <div id="room" className="bg-gray-700 p-8">
           <div className="flex-wrap grid grid-cols-4 gap-4 justify-items-center">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map(video =>
+            {getVideos().map(video =>
               <Camera key={video} />
             )}
           </div>
