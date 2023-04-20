@@ -78,24 +78,28 @@ class Recorder extends React.Component {
 
   recordVideos(videoElements) {    
 
-    //this.canvasRef.current.width = videoElements[0].clientWidth * videoElements.length
-    //this.canvasRef.current.height = videoElements[0].clientHeight * videoElements.length
+    const elementWidth = 400;
+    const elementHeight = 255;
+    const paddingX = 1;
+    const paddingY = 1;
 
-    this.canvasRef.current.width = 1220
-    this.canvasRef.current.height = 690
+    const numElements = videoElements.length;
+    const numColumns = Math.ceil(Math.sqrt(numElements));
+    const numRows = Math.ceil(numElements / numColumns);
+
+    this.canvasRef.current.width = (elementWidth + paddingX) * numColumns + paddingX;
+    this.canvasRef.current.height = (elementHeight + paddingY) * numRows + paddingY;
 
     const paint = () => {
-        //row 1
-        this.ctx.drawImage(videoElements[0], 0, 0, 400, 225);
-        this.ctx.drawImage(videoElements[1], 401, 0, 400, 225);
-        this.ctx.drawImage(videoElements[0], 802, 0, 400, 225);
 
-        // row2
-        this.ctx.drawImage(videoElements[1], 0, 226, 400, 225);
-        this.ctx.drawImage(videoElements[0], 401, 226, 400, 225);
-        this.ctx.drawImage(videoElements[1], 802, 226, 400, 225);
+      for (var i = 0; i < numElements; i++) {
+        let elementX = (i % numColumns) * (elementWidth + paddingX) + paddingX;
+        let elementY = Math.floor(i / numColumns) * (elementHeight + paddingY) + paddingY;
 
-        requestAnimationFrame(paint)
+        this.ctx.drawImage(videoElements[i], elementX, elementY, elementWidth, elementHeight);
+      }
+
+      requestAnimationFrame(paint)
     }
 
     requestAnimationFrame(paint)
@@ -106,12 +110,12 @@ class Recorder extends React.Component {
   startRecording() {
     
     const video = document.querySelectorAll('#video')[0]
-    const video1 = document.querySelectorAll('#video')[1]
+    const videos = document.querySelectorAll('#video')
 
     // get audio and video streams
     let audioStream = this.recordAudio(video)
     //let videoStream = this.recordScreen(this.captureElement)
-    let videoStream = this.recordVideos([video, video1])
+    let videoStream = this.recordVideos(videos)
 
     // mix streams video and audio
     let mixedStream = new MediaStream([...videoStream.getTracks(), ...audioStream.getAudioTracks()])
