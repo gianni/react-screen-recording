@@ -1,24 +1,49 @@
 import React from "react";
 import html2canvas from "html2canvas";
 
+type RecorderProps = {}
 
-class Recorder extends React.Component {
+type RecorderState = {
+  isRecording: boolean,
+  isPlaying: boolean,
+  hasRecorded: boolean,
+  videoUrl: string
+  videoSize: string
+}
 
-  constructor(props) {
+class Recorder extends React.Component<RecorderProps, RecorderState> {
+  
+  canvasRef: React.RefObject<HTMLCanvasElement>
+  modalRef: React.RefObject<HTMLDivElement>
+  videoPreviewContainerRef: React.RefObject<HTMLDivElement>
+  chunks: Blob[]
+  frameRate: number
+  ctx: any
+  captureElement: HTMLElement
+  recordInterval: number | NodeJS.Timer | null
+  mediaRecorder: MediaRecorder | null
+
+  constructor(props: RecorderProps) {
 
     super(props)
     this.state = {
-      videoSize: 0,
+      videoSize: '0',
       isRecording: false,
       isPlaying: false,
       hasRecorded: false,
-      videoUrl: ""
+      videoUrl: ''
     }
 
     this.canvasRef = React.createRef();
     this.modalRef = React.createRef();
     this.videoPreviewContainerRef = React.createRef();
 
+    this.chunks = []
+    this.frameRate = 20
+    this.captureElement = document.body
+    this.recordInterval = null
+    this.mediaRecorder = null
+    
     this.startRecording = this.startRecording.bind(this)
     this.stopRecording = this.stopRecording.bind(this)
     this.download = this.download.bind(this)
@@ -27,16 +52,14 @@ class Recorder extends React.Component {
     this.rewindAll = this.rewindAll.bind(this)
     this.stopAll = this.stopAll.bind(this)
 
-    this.chunks = []
-    this.frameRate = 20
   }
 
   componentDidMount() {
-    this.ctx = this.canvasRef.current.getContext('2d', { willReadFrequently: true })
-    this.captureElement = document.getElementById('room')
+    this.ctx = this.canvasRef.current?.getContext('2d', { willReadFrequently: true })
+    this.captureElement = document.getElementById('room') || document.body
   }
 
-  initMediaRecorder(stream) {
+  initMediaRecorder(stream: MediaStream) {
     let _this = this
     const mediaRecorder = new MediaRecorder(stream);
 
@@ -55,7 +78,7 @@ class Recorder extends React.Component {
     return mediaRecorder
   }
 
-  recordAudio(videoElement) {
+  recordAudio(videoElement: HTMLVideoElement) {
     const ctx = new AudioContext()
     const source = ctx.createMediaElementSource(videoElement)
     const stream_dest = ctx.createMediaStreamDestination()
@@ -63,9 +86,9 @@ class Recorder extends React.Component {
     return stream_dest.stream
   }
 
-  recordScreen(screenElement) {
-    this.canvasRef.current.width = screenElement.clientWidth
-    this.canvasRef.current.height = screenElement.clientHeight
+  recordScreen(screenElement: HTMLElement) {
+    this.canvasRef.current!.width = screenElement.clientWidth
+    this.canvasRef.current!.height = screenElement.clientHeight
 
     this.recordInterval = setInterval(() => {
       html2canvas(this.captureElement).then(screenshot => {
@@ -73,10 +96,10 @@ class Recorder extends React.Component {
       });
     }, this.frameRate)
 
-    return this.canvasRef.current.captureStream(this.frameRate)
+    return this.canvasRef.current!.captureStream(this.frameRate)
   }
 
-  recordVideos(videoElements) {
+  recordVideos(videoElements: HTMLVideoElement[]) {
 
     const elementWidth = 200;
     const elementHeight = 127.5;
@@ -87,8 +110,8 @@ class Recorder extends React.Component {
     const numColumns = Math.ceil(Math.sqrt(numElements));
     const numRows = Math.ceil(numElements / numColumns);
 
-    this.canvasRef.current.width = (elementWidth + paddingX) * numColumns + paddingX;
-    this.canvasRef.current.height = (elementHeight + paddingY) * numRows + paddingY;
+    this.canvasRef.current!.width = (elementWidth + paddingX) * numColumns + paddingX;
+    this.canvasRef.current!.height = (elementHeight + paddingY) * numRows + paddingY;
 
     const paint = () => {
 
@@ -104,13 +127,13 @@ class Recorder extends React.Component {
 
     requestAnimationFrame(paint)
 
-    return this.canvasRef.current.captureStream(this.frameRate)
+    return this.canvasRef.current!.captureStream(this.frameRate)
   }
 
   startRecording() {
     
-    const video = document.querySelectorAll('#video')[0]
-    const videos = document.querySelectorAll('#video')
+    const video = document.querySelectorAll('#video')[0] as HTMLVideoElement
+    const videos = Array.from(document.querySelectorAll('#video')) as HTMLVideoElement[]
 
     // get audio and video streams
     let audioStream = this.recordAudio(video)
@@ -140,21 +163,21 @@ class Recorder extends React.Component {
 
   toggleModal() {
     if (document.getElementById('videoPreview')) {
-      document.getElementById('videoPreview').remove()
+      document.getElementById('videoPreview')?.remove()
     } else {
       const videoPreview = document.createElement('video')
       videoPreview.id = 'videoPreview'
       videoPreview.src = this.state.videoUrl
       videoPreview.controls = true
-      this.videoPreviewContainerRef.current.appendChild(videoPreview)
+      this.videoPreviewContainerRef.current!.appendChild(videoPreview)
     }
 
-    this.modalRef.current.classList.toggle('open')
+    this.modalRef.current!.classList.toggle('open')
   }
 
   playAll() {
-    const videos = document.querySelectorAll('#video')
-    const video1 = document.querySelectorAll('#video')[0]
+    const videos = Array.from(document.querySelectorAll('#video')) as HTMLVideoElement[]
+    const video1 = document.querySelectorAll('#video')[0]  as HTMLVideoElement
     videos.forEach(video => {
       video.play()
     })
@@ -165,7 +188,7 @@ class Recorder extends React.Component {
   }
 
   rewindAll() {
-    const videos = document.querySelectorAll('#video')
+    const videos = Array.from(document.querySelectorAll('#video')) as HTMLVideoElement[]
     videos.forEach(video => {
       video.currentTime = 0
       video.play()
@@ -174,7 +197,7 @@ class Recorder extends React.Component {
   }
 
   stopAll() {
-    const videos = document.querySelectorAll('#video')
+    const videos = Array.from(document.querySelectorAll('#video')) as HTMLVideoElement[]
     videos.forEach(video => {
       video.pause()
     })
@@ -190,8 +213,8 @@ class Recorder extends React.Component {
   }
 
   stopRecording() {
-    clearInterval(this.recordInterval)
-    this.mediaRecorder.stop()
+    clearInterval(this.recordInterval!)
+    this.mediaRecorder?.stop()
     this.setState({ 
       isRecording: false,
       hasRecorded: true

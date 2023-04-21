@@ -1,11 +1,17 @@
 import React from "react";
 
-class Rainbow extends React.Component {
+type RainbowProps = {}
+type RainbowState = {
+  currentColor: string
+}
 
-    constructor(props) {
+class Rainbow extends React.Component<RainbowProps, RainbowState> {
+
+    colors: string[] = ['red','yellow','green','blue']
+
+    constructor(props: RainbowProps) {
         super(props);
         this.state = {currentColor:'grey'};
-        this.colors = ['red','yellow','green','blue']
     }
 
     componentDidMount() {

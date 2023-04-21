@@ -1,8 +1,11 @@
 import React from "react";
 
-class Video extends React.Component {
+type CameraProps = {}
+type CameraState = {}
 
-  constructor(props) {
+class Camera extends React.Component<CameraProps, CameraState> {
+
+  constructor(props: CameraProps) {
     super(props)
     this.state = {}
   }
@@ -17,4 +20,4 @@ class Video extends React.Component {
   }
 }
 
-export default Video
+export default Camera
