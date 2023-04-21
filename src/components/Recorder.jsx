@@ -78,8 +78,8 @@ class Recorder extends React.Component {
 
   recordVideos(videoElements) {
 
-    const elementWidth = 400;
-    const elementHeight = 255;
+    const elementWidth = 200;
+    const elementHeight = 127.5;
     const paddingX = 1;
     const paddingY = 1;
 
@@ -120,10 +120,7 @@ class Recorder extends React.Component {
     // mix streams video and audio
     let mixedStream = new MediaStream([...videoStream.getTracks(), ...audioStream.getAudioTracks()])
 
-    this.mediaRecorder = this.initMediaRecorder(mixedStream, {
-      audioBitsPerSecond: 128000,
-      videoBitsPerSecond: 8000000
-    })
+    this.mediaRecorder = this.initMediaRecorder(mixedStream)
 
     this.mediaRecorder.start()
     this.setState({ 
