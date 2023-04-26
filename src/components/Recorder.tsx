@@ -1,18 +1,9 @@
 import React from "react";
 import html2canvas from "html2canvas";
-
-type RecorderProps = {}
-
-type RecorderState = {
-  isRecording: boolean,
-  isPlaying: boolean,
-  hasRecorded: boolean,
-  videoUrl: string
-  videoSize: string
-}
+import { RecorderProps, RecorderState } from "../types/RecorderProps";
 
 class Recorder extends React.Component<RecorderProps, RecorderState> {
-  
+
   canvasRef: React.RefObject<HTMLCanvasElement>
   modalRef: React.RefObject<HTMLDivElement>
   videoPreviewContainerRef: React.RefObject<HTMLDivElement>
@@ -44,7 +35,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
     this.captureElement = document.body
     this.recordInterval = null
     this.mediaRecorder = null
-    
+
     this.startRecording = this.startRecording.bind(this)
     this.stopRecording = this.stopRecording.bind(this)
     this.download = this.download.bind(this)
@@ -71,7 +62,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
 
     mediaRecorder.onstop = function (e) {
       let blob = new Blob(_this.chunks, { 'type': 'video/webm' })
-      _this.setState({ videoSize: (blob.size / 1024).toFixed(2)  })
+      _this.setState({ videoSize: (blob.size / 1024).toFixed(2) })
       _this.setState({ videoUrl: URL.createObjectURL(blob) })
       _this.chunks = []
     }
@@ -132,7 +123,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
   }
 
   startRecording() {
-    
+
     const video = document.querySelectorAll('#video')[0] as HTMLVideoElement
     const videos = Array.from(document.querySelectorAll('#video')) as HTMLVideoElement[]
 
@@ -147,7 +138,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
     this.mediaRecorder = this.initMediaRecorder(mixedStream)
 
     this.mediaRecorder.start()
-    this.setState({ 
+    this.setState({
       isRecording: true,
       hasRecorded: false
     })
@@ -178,13 +169,13 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
 
   playAll() {
     const videos = Array.from(document.querySelectorAll('#video')) as HTMLVideoElement[]
-    const video1 = document.querySelectorAll('#video')[0]  as HTMLVideoElement
+    const video1 = document.querySelectorAll('#video')[0] as HTMLVideoElement
     videos.forEach(video => {
       video.play()
     })
 
     //unmute video 1
-    video1.muted=false
+    video1.muted = false
     this.setState({ isPlaying: true })
   }
 
@@ -216,7 +207,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
   stopRecording() {
     clearInterval(this.recordInterval!)
     this.mediaRecorder?.stop()
-    this.setState({ 
+    this.setState({
       isRecording: false,
       hasRecorded: true
     })

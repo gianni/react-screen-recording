@@ -1,7 +1,5 @@
 import React from "react";
-
-type CameraProps = {}
-type CameraState = {}
+import { CameraProps, CameraState } from "../types/CameraProps";
 
 class Camera extends React.Component<CameraProps, CameraState> {
 
