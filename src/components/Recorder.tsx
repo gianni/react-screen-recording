@@ -18,7 +18,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
   videoPreviewContainerRef: React.RefObject<HTMLDivElement>
   chunks: Blob[]
   frameRate: number
-  ctx: any
+  ctx: CanvasRenderingContext2D | null | undefined
   captureElement: HTMLElement
   recordInterval: number | NodeJS.Timer | null
   mediaRecorder: MediaRecorder | null
@@ -38,6 +38,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
     this.modalRef = React.createRef();
     this.videoPreviewContainerRef = React.createRef();
 
+    this.ctx = null
     this.chunks = []
     this.frameRate = 20
     this.captureElement = document.body
@@ -92,7 +93,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
 
     this.recordInterval = setInterval(() => {
       html2canvas(this.captureElement).then(screenshot => {
-        this.ctx.drawImage(screenshot, 0, 0)
+        this.ctx?.drawImage(screenshot, 0, 0)
       });
     }, this.frameRate)
 
@@ -119,7 +120,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
         let elementX = (i % numColumns) * (elementWidth + paddingX) + paddingX;
         let elementY = Math.floor(i / numColumns) * (elementHeight + paddingY) + paddingY;
 
-        this.ctx.drawImage(videoElements[i], elementX, elementY, elementWidth, elementHeight);
+        this.ctx?.drawImage(videoElements[i], elementX, elementY, elementWidth, elementHeight);
       }
 
       requestAnimationFrame(paint)
