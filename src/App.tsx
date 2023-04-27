@@ -19,7 +19,7 @@ function App() {
         <div className="text-lg p-2">MEETING CONFERENCE</div>
         <hr />
         <div id="room" className="bg-gray-700 p-8">
-          <div className="flex-wrap grid grid-cols-4 gap-4 justify-items-center">
+          <div id="roomContainer" className="flex-wrap grid grid-cols-4 gap-4 justify-items-center">
             {getVideos().map(video =>
               <Camera key={video} />
             )}

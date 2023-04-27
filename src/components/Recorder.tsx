@@ -1,5 +1,4 @@
 import React from "react";
-import html2canvas from "html2canvas";
 import { RecorderProps, RecorderState } from "../types/RecorderProps";
 
 class Recorder extends React.Component<RecorderProps, RecorderState> {
@@ -13,6 +12,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
   captureElement: HTMLElement
   recordInterval: number | NodeJS.Timer | null
   mediaRecorder: MediaRecorder | null
+  paintID: number
 
   constructor(props: RecorderProps) {
 
@@ -35,6 +35,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
     this.captureElement = document.body
     this.recordInterval = null
     this.mediaRecorder = null
+    this.paintID = 0
 
     this.startRecording = this.startRecording.bind(this)
     this.stopRecording = this.stopRecording.bind(this)
@@ -43,6 +44,8 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
     this.playAll = this.playAll.bind(this)
     this.rewindAll = this.rewindAll.bind(this)
     this.stopAll = this.stopAll.bind(this)
+    this.addVideo = this.addVideo.bind(this)
+    this.removeVideo = this.removeVideo.bind(this)
 
   }
 
@@ -78,59 +81,48 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
     return stream_dest.stream
   }
 
-  recordScreen(screenElement: HTMLElement) {
-    this.canvasRef.current!.width = screenElement.clientWidth
-    this.canvasRef.current!.height = screenElement.clientHeight
+  paintVideo() {
+    const paintCallback = () => {
+      const videos = Array.from(document.querySelectorAll('#video')) as HTMLVideoElement[]
 
-    this.recordInterval = setInterval(() => {
-      html2canvas(this.captureElement).then(screenshot => {
-        this.ctx?.drawImage(screenshot, 0, 0)
-      });
-    }, this.frameRate)
+      const elementWidth = 200;
+      const elementHeight = 127.5;
+      const paddingX = 1;
+      const paddingY = 1;
 
-    return this.canvasRef.current!.captureStream(this.frameRate)
-  }
+      const numElements = videos.length;
+      const numColumns = Math.ceil(Math.sqrt(numElements));
+      const numRows = Math.ceil(numElements / numColumns);
 
-  recordVideos(videoElements: HTMLVideoElement[]) {
-
-    const elementWidth = 200;
-    const elementHeight = 127.5;
-    const paddingX = 1;
-    const paddingY = 1;
-
-    const numElements = videoElements.length;
-    const numColumns = Math.ceil(Math.sqrt(numElements));
-    const numRows = Math.ceil(numElements / numColumns);
-
-    this.canvasRef.current!.width = (elementWidth + paddingX) * numColumns + paddingX;
-    this.canvasRef.current!.height = (elementHeight + paddingY) * numRows + paddingY;
-
-    const paint = () => {
+      this.canvasRef.current!.width = (elementWidth + paddingX) * numColumns + paddingX;
+      this.canvasRef.current!.height = (elementHeight + paddingY) * numRows + paddingY;
 
       for (var i = 0; i < numElements; i++) {
         let elementX = (i % numColumns) * (elementWidth + paddingX) + paddingX;
         let elementY = Math.floor(i / numColumns) * (elementHeight + paddingY) + paddingY;
 
-        this.ctx?.drawImage(videoElements[i], elementX, elementY, elementWidth, elementHeight);
+        this.ctx?.drawImage(videos[i], elementX, elementY, elementWidth, elementHeight);
       }
 
-      requestAnimationFrame(paint)
+      this.paintID = requestAnimationFrame(paintCallback)
     }
 
-    requestAnimationFrame(paint)
+    this.paintID = requestAnimationFrame(paintCallback)
+  }
 
+  recordVideos() {
     return this.canvasRef.current!.captureStream(this.frameRate)
   }
 
   startRecording() {
 
     const video = document.querySelectorAll('#video')[0] as HTMLVideoElement
-    const videos = Array.from(document.querySelectorAll('#video')) as HTMLVideoElement[]
 
     // get audio and video streams
     let audioStream = this.recordAudio(video)
-    //let videoStream = this.recordScreen(this.captureElement)
-    let videoStream = this.recordVideos(videos)
+
+    this.paintVideo()
+    let videoStream = this.recordVideos()
 
     // mix streams video and audio
     let mixedStream = new MediaStream([...videoStream.getTracks(), ...audioStream.getAudioTracks()])
@@ -165,6 +157,20 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
     }
 
     this.modalRef.current!.classList.toggle('open')
+  }
+
+  addVideo() {
+    const video = document.createElement('video')
+    const roomContainer = document.querySelector('#roomContainer')
+    video.id = 'video'
+    video.src = '/big-buck-bunny.webm'
+    roomContainer?.appendChild(video)
+    video.play()
+  }
+
+  removeVideo() {
+    const lastVideo = document.querySelector('video:last-of-type');
+    lastVideo?.remove()
   }
 
   playAll() {
@@ -207,6 +213,7 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
   stopRecording() {
     clearInterval(this.recordInterval!)
     this.mediaRecorder?.stop()
+    cancelAnimationFrame(this.paintID)
     this.setState({
       isRecording: false,
       hasRecorded: true
@@ -225,6 +232,8 @@ class Recorder extends React.Component<RecorderProps, RecorderState> {
             <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.isRecording ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.stopRecording}>STOP REC</button> |
             <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.hasRecorded ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.toggleModal}>PREVIEW</button>
             <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.hasRecorded ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.download}>DOWNLOAD</button>
+            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.isPlaying ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.addVideo}>ADD VIDEO</button>
+            <button className={`bg-cyan-200 text-cyan-950 pr-2 pl-2 m-2 ${this.state.isPlaying ? 'bg-cyan-200' : 'bg-gray-200'}`} onClick={this.removeVideo}>DELETE VIDEO</button>
           </div>
           <div className="p-2">
             Video size: {this.state.videoSize} Kb
